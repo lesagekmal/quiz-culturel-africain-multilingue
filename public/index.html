@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Culturel Africain</title>
+    <meta name="description" content="Testez vos connaissances sur la culture africaine">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.fedapay.com/checkout.js"></script>
+</head>
+<body>
+    <!-- Écran d'accueil -->
+    <div id="home-screen" class="screen active">
+        <header>
+            <div class="logo">
+                <i class="fas fa-globe-africa"></i>
+                <h1>Quiz Africain</h1>
+            </div>
+            <div class="language-selector">
+                <button class="lang-btn active" data-lang="fr">🇫🇷 FR</button>
+                <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="hero">
+                <h2 data-i18n="hero_title">Testez votre culture africaine</h2>
+                <p data-i18n="hero_subtitle">Découvrez la richesse du continent à travers 10 catégories captivantes</p>
+                
+                <div class="categories-grid">
+                    <!-- Catégories générées dynamiquement -->
+                </div>
+
+                <div class="mode-selector">
+                    <h3 data-i18n="select_mode">Choisissez votre mode</h3>
+                    <div class="mode-buttons">
+                        <button id="normal-mode" class="mode-btn active">
+                            <i class="fas fa-stopwatch"></i>
+                            <span data-i18n="normal_mode">Mode Normal (20s)</span>
+                        </button>
+                        <button id="training-mode" class="mode-btn">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span data-i18n="training_mode">Mode Entraînement</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="start-quiz" class="btn-primary" data-i18n="start_quiz">
+                    Commencer le quiz
+                </button>
+
+                <div class="leaderboard-preview">
+                    <h3 data-i18n="top_players">Top 10 Joueurs</h3>
+                    <div id="leaderboard-list"></div>
+                </div>
+
+                <div class="support-section">
+                    <h3 data-i18n="support_project">Soutenez ce projet</h3>
+                    <div class="donation-buttons">
+                        <button class="donation-btn" data-amount="500">500 FCFA</button>
+                        <button class="donation-btn" data-amount="1000">1000 FCFA</button>
+                        <button class="donation-btn" data-amount="2000">2000 FCFA</button>
+                        <button class="donation-btn" data-amount="5000">5000 FCFA</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Écran du quiz -->
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-header">
+            <div class="quiz-info">
+                <span id="current-category"></span>
+                <span id="question-counter"></span>
+            </div>
+            <div class="timer-container">
+                <div class="timer" id="timer">20</div>
+            </div>
+        </div>
+
+        <div class="quiz-content">
+            <div class="question-card">
+                <h2 id="question-text"></h2>
+                <div class="answers-grid" id="answers-container">
+                    <!-- Réponses générées dynamiquement -->
+                </div>
+            </div>
+
+            <div class="quiz-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <button id="next-question" class="btn-secondary" data-i18n="next_question" disabled>
+                    Question suivante
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Écran des résultats -->
+    <div id="results-screen" class="screen">
+        <div class="results-container">
+            <h2 data-i18n="quiz_completed">Quiz Terminé !</h2>
+            
+            <div class="score-display">
+                <div class="score-circle">
+                    <span id="final-score">0</span>
+                    <small data-i18n="points">points</small>
+                </div>
+                
+                <div class="score-details">
+                    <div class="score-item">
+                        <span data-i18n="correct_answers">Bonnes réponses :</span>
+                        <span id="correct-count">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span data-i18n="time_spent">Temps passé :</span>
+                        <span id="time-spent">0s</span>
+                    </div>
+                    <div class="score-item">
+                        <span data-i18n="category_best">Meilleure catégorie :</span>
+                        <span id="best-category">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-actions">
+                <button id="play-again" class="btn-primary" data-i18n="play_again">
+                    Rejouer
+                </button>
+                <button id="back-home" class="btn-secondary" data-i18n="back_home">
+                    Retour à l'accueil
+                </button>
+            </div>
+
+            <div class="share-section">
+                <h3 data-i18n="share_score">Partagez votre score</h3>
+                <div class="share-buttons">
+                    <button class="share-btn" data-platform="twitter">
+                        <i class="fab fa-twitter"></i>
+                    </button>
+                    <button class="share-btn" data-platform="facebook">
+                        <i class="fab fa-facebook"></i>
+                    </button>
+                    <button class="share-btn" id="copy-link">
+                        <i class="fas fa-link"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de paiement -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 data-i18n="payment_title">Soutenir le Quiz Africain</h3>
+            <p data-i18n="payment_description">Votre contribution aide à développer plus de contenu éducatif sur l'Afrique</p>
+            
+            <div class="payment-options">
+                <div class="payment-method active" data-method="mobile">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span data-i18n="mobile_money">Mobile Money</span>
+                </div>
+                <div class="payment-method" data-method="card">
+                    <i class="fas fa-credit-card"></i>
+                    <span data-i18n="credit_card">Carte Bancaire</span>
+                </div>
+            </div>
+
+            <div class="payment-form">
+                <input type="tel" id="phone-number" placeholder="Numéro de téléphone" data-i18n-ph="enter_phone">
+                <input type="text" id="card-number" placeholder="Numéro de carte" data-i18n-ph="enter_card" style="display: none;">
+                
+                <div class="payment-details">
+                    <p data-i18n="amount">Montant :</p>
+                    <h4 id="payment-amount">0 FCFA</h4>
+                </div>
+
+                <button id="confirm-payment" class="btn-primary" data-i18n="confirm_payment">
+                    Confirmer le paiement
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

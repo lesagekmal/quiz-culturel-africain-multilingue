@@ -1,0 +1,62 @@
+[
+  {
+    "text": "Quel est le plat national du Sénégal ?",
+    "answers": ["Thiéboudienne", "Mafé", "Attiéké", "Fufu"],
+    "correct": "Thiéboudienne",
+    "category": "cuisine"
+  },
+  {
+    "text": "Qui est considéré comme le père du cinéma africain ?",
+    "answers": ["Ousmane Sembène", "Djibril Diop Mambéty", "Gaston Kaboré", "Souleymane Cissé"],
+    "correct": "Ousmane Sembène",
+    "category": "art"
+  },
+  {
+    "text": "Quel empire ouest-africain était célèbre pour sa richesse en or ?",
+    "answers": ["Empire du Mali", "Empire Songhaï", "Royaume du Ghana", "Empire du Kanem-Bornou"],
+    "correct": "Empire du Mali",
+    "category": "histoire"
+  },
+  {
+    "text": "Quel est le plus long fleuve d'Afrique ?",
+    "answers": ["Nil", "Congo", "Niger", "Zambèze"],
+    "correct": "Nil",
+    "category": "geographie"
+  },
+  {
+    "text": "Combien de langues sont parlées en Afrique ?",
+    "answers": ["500-1000", "1000-1500", "1500-2000", "2000+"],
+    "correct": "2000+",
+    "category": "langues"
+  },
+  {
+    "text": "Quelle cérémonie traditionnelle est célèbre au Bénin ?",
+    "answers": ["Guérewol", "Gerewol", "Voodoo Festival", "Festival des Masques"],
+    "correct": "Festival des Masques",
+    "category": "traditions"
+  },
+  {
+    "text": "Qui était la reine guerrière du Royaume du Dahomey ?",
+    "answers": ["Reine Nzinga", "Reine Amina", "Reine Ranavalona", "Reine Hangbe"],
+    "correct": "Reine Hangbe",
+    "category": "savants"
+  },
+  {
+    "text": "Quel animal est surnommé 'roi de la savane' ?",
+    "answers": ["Éléphant", "Lion", "Rhinocéros", "Buffle"],
+    "correct": "Lion",
+    "category": "nature"
+  },
+  {
+    "text": "Quel pays africain a remporté le plus de Coupes d'Afrique des Nations ?",
+    "answers": ["Égypte", "Cameroun", "Ghana", "Nigéria"],
+    "correct": "Égypte",
+    "category": "sports"
+  },
+  {
+    "text": "Où a été inventé le premier système de paiement mobile M-Pesa ?",
+    "answers": ["Kenya", "Afrique du Sud", "Nigéria", "Sénégal"],
+    "correct": "Kenya",
+    "category": "innovation"
+  }
+]
