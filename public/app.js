@@ -1,394 +1,564 @@
+// ============================================
+// QUIZ CULTUREL AFRICAIN - APPLICATION COMPLÈTE
+// ============================================
+
+console.log('🎯 Quiz Culturel Africain - Chargement...');
+
 class QuizApp {
     constructor() {
+        console.log('🔧 Initialisation de QuizApp...');
+        
+        // État
         this.currentLang = 'fr';
-        this.currentScreen = 'home';
         this.selectedCategories = new Set();
         this.selectedMode = 'normal';
+        this.questions = [];
         this.currentQuestionIndex = 0;
         this.score = 0;
         this.correctAnswers = 0;
         this.totalTime = 0;
-        this.timer = null;
         this.timeLeft = 20;
+        this.timer = null;
         this.isTimerRunning = false;
-        this.questions = [];
-        this.currentQuestion = null;
+        this.answerSelected = false;
         this.quizStarted = false;
         this.quizHistory = [];
-        this.cachedQuestions = [];
+        this.deferredPrompt = null; // Pour PWA
         
-        this.initializeApp();
+        // Traductions
+        this.translations = {
+            fr: {
+                'hero_title': 'Testez votre culture africaine',
+                'hero_subtitle': 'Découvrez la richesse du continent à travers 10 catégories captivantes',
+                'select_mode': 'Choisissez votre mode',
+                'normal_mode': 'Mode Normal (20s)',
+                'training_mode': 'Mode Entraînement',
+                'start_quiz': 'Commencer le quiz',
+                'top_players': 'Top 10 Joueurs',
+                'support_project': 'Soutenez ce projet',
+                'custom_amount_placeholder': 'Montant en FCFA',
+                'custom_donate': 'Donner',
+                'min_amount': 'Minimum: 500 FCFA',
+                'no_scores': 'Aucun score enregistré',
+                'install_app': '📲 Installer l\'app',
+                'next_question': 'Question suivante',
+                'quiz_completed': 'Quiz Terminé !',
+                'points': 'points',
+                'correct_answers': 'Bonnes réponses :',
+                'time_spent': 'Temps passé :',
+                'category_best': 'Meilleure catégorie :',
+                'play_again': 'Rejouer',
+                'back_home': 'Retour à l\'accueil',
+                'share_score': 'Partagez votre score',
+                'payment_title': 'Soutenir le Quiz Africain',
+                'payment_description': 'Votre contribution aide à développer plus de contenu éducatif sur l\'Afrique',
+                'mobile_money': 'Mobile Money',
+                'credit_card': 'Carte Bancaire',
+                'phone_placeholder': 'Numéro de téléphone',
+                'card_placeholder': 'Numéro de carte',
+                'amount': 'Montant :',
+                'confirm_payment': 'Confirmer le paiement',
+                'select_category': 'Sélectionnez au moins une catégorie',
+                'min_amount_error': 'Montant minimum: 500 FCFA',
+                'categories_selected': 'catégorie(s) sélectionnée(s)',
+                'install_available': 'Installer l\'application sur votre téléphone !',
+                'install_instructions': 'Cliquez sur "Installer" dans la barre d\'URL ou utilisez le menu partage'
+            },
+            en: {
+                'hero_title': 'Test your African culture knowledge',
+                'hero_subtitle': 'Discover the richness of the continent through 10 captivating categories',
+                'select_mode': 'Choose your mode',
+                'normal_mode': 'Normal Mode (20s)',
+                'training_mode': 'Training Mode',
+                'start_quiz': 'Start Quiz',
+                'top_players': 'Top 10 Players',
+                'support_project': 'Support this project',
+                'custom_amount_placeholder': 'Amount in FCFA',
+                'custom_donate': 'Donate',
+                'min_amount': 'Minimum: 500 FCFA',
+                'no_scores': 'No scores recorded',
+                'install_app': '📲 Install App',
+                'next_question': 'Next Question',
+                'quiz_completed': 'Quiz Completed!',
+                'points': 'points',
+                'correct_answers': 'Correct answers:',
+                'time_spent': 'Time spent:',
+                'category_best': 'Best category:',
+                'play_again': 'Play Again',
+                'back_home': 'Back to Home',
+                'share_score': 'Share your score',
+                'payment_title': 'Support African Quiz',
+                'payment_description': 'Your contribution helps develop more educational content about Africa',
+                'mobile_money': 'Mobile Money',
+                'credit_card': 'Credit Card',
+                'phone_placeholder': 'Phone number',
+                'card_placeholder': 'Card number',
+                'amount': 'Amount:',
+                'confirm_payment': 'Confirm Payment',
+                'select_category': 'Select at least one category',
+                'min_amount_error': 'Minimum amount: 500 FCFA',
+                'categories_selected': 'category(s) selected',
+                'install_available': 'Install the app on your phone!',
+                'install_instructions': 'Click "Install" in the URL bar or use the share menu'
+            }
+        };
+        
+        // Initialiser
+        this.init();
     }
 
-    async initializeApp() {
-        // Charger les traductions
-        await this.loadTranslations();
+    init() {
+        console.log('🚀 Démarrage de l\'application...');
         
-        // Initialiser les écouteurs d'événements
-        this.setupEventListeners();
-        
-        // Charger les catégories
-        this.loadCategories();
-        
-        // Charger le classement
-        this.loadLeaderboard();
-        
-        // Initialiser le cache
-        await this.initCache();
-        
-        // Initialiser le service worker pour PWA
-        this.registerServiceWorker();
-        
-        // Vérifier la connexion
-        this.checkOnlineStatus();
-    }
-
-    async loadTranslations() {
-        try {
-            const response = await fetch('/api/translations?lang=' + this.currentLang);
-            this.translations = await response.json();
-            this.updateTexts();
-        } catch (error) {
-            console.error('Erreur chargement traductions:', error);
-            // Fallback aux traductions par défaut
-            this.translations = {
-                fr: require('./translations/fr.json'),
-                en: require('./translations/en.json')
-            };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.setup());
+        } else {
+            this.setup();
         }
     }
 
-    updateTexts() {
-        // Mettre à jour tous les textes avec data-i18n
-        document.querySelectorAll('[data-i18n]').forEach(element => {
-            const key = element.getAttribute('data-i18n');
-            if (this.translations[this.currentLang] && this.translations[this.currentLang][key]) {
-                element.textContent = this.translations[this.currentLang][key];
-            }
-        });
-
-        // Mettre à jour les placeholders
-        document.querySelectorAll('[data-i18n-ph]').forEach(element => {
-            const key = element.getAttribute('data-i18n-ph');
-            if (this.translations[this.currentLang] && this.translations[this.currentLang][key]) {
-                element.placeholder = this.translations[this.currentLang][key];
-            }
-        });
+    setup() {
+        console.log('📝 Configuration...');
+        
+        // 1. Configurer PWA
+        this.setupPWA();
+        
+        // 2. Charger les catégories
+        this.loadCategories();
+        
+        // 3. Configurer les événements
+        this.setupEventListeners();
+        
+        // 4. Charger les textes
+        this.updateTexts();
+        
+        // 5. Charger le classement
+        this.loadLeaderboard();
+        
+        // 6. Notification de bienvenue
+        this.showNotification('Quiz Culturel Africain prêt !', 'success');
+        
+        console.log('✅ Application configurée');
     }
 
-    setupEventListeners() {
-        // Sélecteur de langue
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const lang = e.target.dataset.lang;
-                this.switchLanguage(lang);
-            });
+    // ============ PWA - INSTALLER L'APP ============
+    setupPWA() {
+        console.log('📱 Configuration PWA...');
+        
+        // A. Vérifier si on peut installer
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('📲 PWA installable détecté');
+            e.preventDefault();
+            this.deferredPrompt = e;
+            this.showInstallButton();
         });
+        
+        // B. Vérifier si déjà installé
+        if (window.matchMedia('(display-mode: standalone)').matches || 
+            window.navigator.standalone === true) {
+            console.log('📱 Application déjà installée');
+        }
+        
+        // C. Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('✅ Service Worker enregistré:', registration.scope);
+                })
+                .catch(error => {
+                    console.log('❌ Service Worker échec:', error);
+                });
+        }
+    }
 
-        // Sélection des catégories
-        document.querySelector('.categories-grid').addEventListener('click', (e) => {
+    showInstallButton() {
+        // Créer ou mettre à jour le bouton d'installation
+        let installBtn = document.getElementById('install-app-btn');
+        
+        if (!installBtn) {
+            // Créer le bouton dans le header
+            const header = document.querySelector('header');
+            if (header) {
+                installBtn = document.createElement('button');
+                installBtn.id = 'install-app-btn';
+                installBtn.className = 'install-btn';
+                installBtn.innerHTML = '<i class="fas fa-download"></i>';
+                installBtn.title = this.translations[this.currentLang].install_app;
+                
+                // Ajouter après le sélecteur de langue
+                const langSelector = document.querySelector('.language-selector');
+                if (langSelector) {
+                    langSelector.parentNode.insertBefore(installBtn, langSelector.nextSibling);
+                }
+                
+                // Événement
+                installBtn.addEventListener('click', () => this.installApp());
+            }
+        }
+        
+        // Montrer le bouton
+        if (installBtn) {
+            installBtn.style.display = 'block';
+            this.showNotification(this.translations[this.currentLang].install_available, 'info');
+        }
+    }
+
+    async installApp() {
+        if (!this.deferredPrompt) {
+            this.showNotification('Installation non disponible', 'error');
+            return;
+        }
+        
+        // Afficher la prompt d'installation
+        this.deferredPrompt.prompt();
+        
+        // Attendre le résultat
+        const { outcome } = await this.deferredPrompt.userChoice;
+        console.log('Résultat installation:', outcome);
+        
+        // Réinitialiser
+        this.deferredPrompt = null;
+        
+        // Cacher le bouton
+        const installBtn = document.getElementById('install-app-btn');
+        if (installBtn) {
+            installBtn.style.display = 'none';
+        }
+        
+        if (outcome === 'accepted') {
+            this.showNotification('Application installée avec succès !', 'success');
+        }
+    }
+
+    // ============ TRADUCTIONS ============
+    updateTexts() {
+        const langData = this.translations[this.currentLang];
+        if (!langData) return;
+        
+        // Mettre à jour les textes
+        this.updateElement('#hero-title', langData.hero_title);
+        this.updateElement('#hero-subtitle', langData.hero_subtitle);
+        this.updateElement('#select-mode', langData.select_mode);
+        
+        // Modes
+        const normalBtn = document.getElementById('normal-mode');
+        const trainingBtn = document.getElementById('training-mode');
+        if (normalBtn) normalBtn.querySelector('span').textContent = langData.normal_mode;
+        if (trainingBtn) trainingBtn.querySelector('span').textContent = langData.training_mode;
+        
+        // Boutons
+        this.updateElement('#start-quiz', langData.start_quiz);
+        this.updateElement('#top-players', langData.top_players);
+        this.updateElement('#support-project', langData.support_project);
+        
+        // Dons personnalisés
+        this.updateElement('#custom-amount', langData.custom_amount_placeholder, 'placeholder');
+        this.updateElement('#custom-donate-btn', langData.custom_donate);
+        this.updateElement('.amount-info', langData.min_amount);
+        
+        // Quiz
+        this.updateElement('#next-question', langData.next_question);
+        
+        // Bouton installer
+        const installBtn = document.getElementById('install-app-btn');
+        if (installBtn) {
+            installBtn.title = langData.install_app;
+        }
+    }
+
+    updateElement(selector, text, attribute = 'textContent') {
+        const element = document.querySelector(selector);
+        if (element) {
+            if (attribute === 'textContent') {
+                element.textContent = text;
+            } else if (attribute === 'placeholder') {
+                element.placeholder = text;
+            } else if (attribute === 'value') {
+                element.value = text;
+            } else if (attribute === 'title') {
+                element.title = text;
+            }
+        }
+    }
+
+    // ============ CATÉGORIES ============
+    loadCategories() {
+        const categories = [
+            { id: 'cuisine', name: 'Cuisine Africaine', icon: 'fas fa-utensils', desc: 'Saveurs traditionnelles' },
+            { id: 'art', name: 'Art et Culture', icon: 'fas fa-palette', desc: 'Musique, danse, peinture' },
+            { id: 'histoire', name: 'Histoire', icon: 'fas fa-landmark', desc: 'Royaumes et civilisations' },
+            { id: 'geographie', name: 'Géographie', icon: 'fas fa-globe-africa', desc: 'Pays, fleuves, montagnes' },
+            { id: 'langues', name: 'Langues', icon: 'fas fa-language', desc: 'Plus de 2000 langues' },
+            { id: 'traditions', name: 'Traditions', icon: 'fas fa-hands', desc: 'Coutumes et rituels' },
+            { id: 'savants', name: 'Grandes Figures', icon: 'fas fa-users', desc: 'Savants et héros' },
+            { id: 'nature', name: 'Nature et Faune', icon: 'fas fa-leaf', desc: 'Animaux et écosystèmes' },
+            { id: 'sports', name: 'Sports', icon: 'fas fa-futbol', desc: 'Athlètes et compétitions' },
+            { id: 'innovation', name: 'Innovation', icon: 'fas fa-lightbulb', desc: 'Technologie et startups' }
+        ];
+        
+        const grid = document.querySelector('.categories-grid');
+        if (!grid) return;
+        
+        grid.innerHTML = categories.map(cat => `
+            <div class="category-card" data-category="${cat.id}">
+                <div class="category-icon">
+                    <i class="${cat.icon}"></i>
+                </div>
+                <h3>${cat.name}</h3>
+                <p>${cat.desc}</p>
+            </div>
+        `).join('');
+        
+        console.log(`✅ ${categories.length} catégories chargées`);
+    }
+
+    // ============ ÉVÉNEMENTS ============
+    setupEventListeners() {
+        // Catégories
+        document.addEventListener('click', (e) => {
             const categoryCard = e.target.closest('.category-card');
             if (categoryCard) {
                 this.toggleCategory(categoryCard);
+                return;
             }
         });
-
-        // Sélection du mode
+        
+        // Modes
         document.getElementById('normal-mode').addEventListener('click', () => {
             this.selectMode('normal');
         });
-
+        
         document.getElementById('training-mode').addEventListener('click', () => {
             this.selectMode('training');
         });
-
+        
         // Démarrer le quiz
-        document.getElementById('start-quiz').addEventListener('click', async () => {
-            if (this.selectedCategories.size === 0) {
-                this.showNotification('Sélectionnez au moins une catégorie', 'error');
-                return;
-            }
-            await this.startQuiz();
+        document.getElementById('start-quiz').addEventListener('click', () => {
+            this.startQuiz();
         });
-
-        // Boutons de don
+        
+        // Langues
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const lang = e.target.closest('.lang-btn').dataset.lang;
+                this.switchLanguage(lang);
+            });
+        });
+        
+        // Dons
         document.querySelectorAll('.donation-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const amount = e.target.dataset.amount;
                 this.openPaymentModal(amount);
             });
         });
-
-        // Modal de paiement
-        document.querySelector('.close-modal').addEventListener('click', () => {
-            this.closePaymentModal();
+        
+        // Don personnalisé
+        document.getElementById('custom-donate-btn').addEventListener('click', () => {
+            const amount = document.getElementById('custom-amount').value;
+            if (!amount || amount < 500) {
+                this.showNotification('min_amount_error', 'error');
+                return;
+            }
+            this.openPaymentModal(amount);
         });
-
-        document.querySelectorAll('.payment-method').forEach(method => {
-            method.addEventListener('click', (e) => {
-                this.selectPaymentMethod(e.target.closest('.payment-method').dataset.method);
-            });
-        });
-
-        document.getElementById('confirm-payment').addEventListener('click', () => {
-            this.processPayment();
-        });
-
-        // Gestion des réponses
-        document.getElementById('answers-container').addEventListener('click', (e) => {
+        
+        // Quiz - Réponses
+        document.addEventListener('click', (e) => {
             const answerBtn = e.target.closest('.answer-btn');
             if (answerBtn && !this.answerSelected) {
                 this.selectAnswer(answerBtn);
             }
         });
-
+        
         // Question suivante
         document.getElementById('next-question').addEventListener('click', () => {
             this.nextQuestion();
         });
-
-        // Rejouer
+        
+        // Résultats
         document.getElementById('play-again').addEventListener('click', () => {
             this.restartQuiz();
         });
-
-        // Retour à l'accueil
+        
         document.getElementById('back-home').addEventListener('click', () => {
             this.showScreen('home');
         });
-
-        // Partager
-        document.querySelectorAll('.share-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const platform = e.target.closest('.share-btn').dataset.platform;
-                if (platform === 'copy-link') {
-                    this.copyToClipboard();
-                } else {
-                    this.shareScore(platform);
-                }
-            });
-        });
-
-        // Gestion online/offline
-        window.addEventListener('online', () => {
-            this.syncCachedQuestions();
-            this.showNotification('Connexion rétablie', 'success');
-        });
-
-        window.addEventListener('offline', () => {
-            this.showNotification('Mode hors ligne activé', 'warning');
-        });
+        
+        console.log('✅ Événements configurés');
     }
 
-    async initCache() {
-        // Vérifier si IndexedDB est disponible
-        if ('indexedDB' in window) {
-            this.db = await this.openDatabase();
+    // ============ FONCTIONNALITÉS ============
+    toggleCategory(card) {
+        const category = card.dataset.category;
+        
+        if (this.selectedCategories.has(category)) {
+            this.selectedCategories.delete(category);
+            card.classList.remove('selected');
+        } else {
+            this.selectedCategories.add(category);
+            card.classList.add('selected');
         }
         
-        // Charger depuis localStorage en fallback
-        const cached = localStorage.getItem('quizCache');
-        if (cached) {
-            this.cachedQuestions = JSON.parse(cached);
-        }
+        this.showNotification(
+            `${this.selectedCategories.size} ${this.translations[this.currentLang].categories_selected}`,
+            'info'
+        );
     }
 
-    openDatabase() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open('QuizCache', 1);
-            
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains('questions')) {
-                    db.createObjectStore('questions', { keyPath: 'id' });
-                }
-            };
-            
-            request.onsuccess = (event) => resolve(event.target.result);
-            request.onerror = (event) => reject(event.target.error);
+    selectMode(mode) {
+        this.selectedMode = mode;
+        
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('active');
         });
-    }
-
-    async loadQuestionsFromServer() {
-        try {
-            const categories = Array.from(this.selectedCategories);
-            const response = await fetch(
-                `/api/questions/batch?lang=${this.currentLang}&count=10&categories=${encodeURIComponent(categories.join(','))}`
-            );
-            
-            if (!response.ok) throw new Error('Erreur serveur');
-            
-            const questions = await response.json();
-            
-            // Ajouter un ID unique à chaque question
-            questions.forEach((q, index) => {
-                q.id = `q${Date.now()}_${index}`;
-                q.received = new Date().toISOString();
-            });
-            
-            // Mettre en cache
-            await this.cacheQuestions(questions);
-            
-            return questions;
-        } catch (error) {
-            console.error('Erreur chargement questions:', error);
-            throw error;
-        }
-    }
-
-    async cacheQuestions(questions) {
-        // Mettre en cache dans IndexedDB si disponible
-        if (this.db) {
-            const transaction = this.db.transaction(['questions'], 'readwrite');
-            const store = transaction.objectStore('questions');
-            
-            questions.forEach(question => {
-                store.put(question);
-            });
-            
-            await transaction.complete;
-        }
         
-        // Mettre en cache dans localStorage (limité à 50 questions)
-        this.cachedQuestions = [...this.cachedQuestions, ...questions]
-            .sort((a, b) => new Date(b.received) - new Date(a.received))
-            .slice(0, 50);
+        document.getElementById(`${mode}-mode`).classList.add('active');
         
-        localStorage.setItem('quizCache', JSON.stringify(this.cachedQuestions));
+        this.showNotification(
+            `Mode: ${mode === 'normal' ? this.translations[this.currentLang].normal_mode : 
+                                       this.translations[this.currentLang].training_mode}`,
+            'success'
+        );
     }
 
-    async getNextQuestion() {
-        // Essayer d'abord de charger depuis le serveur
-        if (navigator.onLine && this.questions.length < 3) {
-            try {
-                const newQuestions = await this.loadQuestionsFromServer();
-                this.questions.push(...newQuestions);
-            } catch (error) {
-                console.log('Utilisation du cache offline');
+    switchLanguage(lang) {
+        this.currentLang = lang;
+        
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.lang === lang) {
+                btn.classList.add('active');
             }
-        }
+        });
         
-        // Si pas de questions en ligne, utiliser le cache
-        if (this.questions.length === 0 && this.cachedQuestions.length > 0) {
-            this.questions = this.getRandomCachedQuestions(10);
-        }
+        this.updateTexts();
         
-        // Si toujours pas de questions, erreur
-        if (this.questions.length === 0) {
-            throw new Error('Aucune question disponible');
-        }
-        
-        return this.questions[this.currentQuestionIndex];
+        const langText = lang === 'fr' ? 'Français' : 'English';
+        this.showNotification(`Langue: ${langText}`, 'success');
     }
 
-    getRandomCachedQuestions(count) {
-        const shuffled = [...this.cachedQuestions].sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, count);
+    startQuiz() {
+        if (this.selectedCategories.size === 0) {
+            this.showNotification('select_category', 'error');
+            return;
+        }
+        
+        console.log('🎮 Démarrage avec catégories:', Array.from(this.selectedCategories));
+        
+        // Générer des questions de test
+        this.generateTestQuestions();
+        
+        // Afficher l'écran quiz
+        this.showScreen('quiz');
+        
+        // Charger la première question
+        this.loadQuestion();
+        
+        // Démarrer le timer
+        if (this.selectedMode === 'normal') {
+            this.startTimer();
+        }
+        
+        this.showNotification('quiz_started', 'success');
     }
 
-    async startQuiz() {
-        this.quizStarted = true;
-        this.currentQuestionIndex = 0;
-        this.score = 0;
-        this.correctAnswers = 0;
-        this.totalTime = 0;
-        this.questions = [];
-        
-        try {
-            // Charger le premier lot de questions
-            await this.loadQuestionsFromServer();
-            
-            // Afficher l'écran du quiz
-            this.showScreen('quiz');
-            
-            // Charger la première question
-            await this.loadQuestion();
-            
-            // Démarrer le timer si mode normal
-            if (this.selectedMode === 'normal') {
-                this.startTimer();
+    generateTestQuestions() {
+        this.questions = [
+            {
+                text: "Quel est le plat national du Sénégal ?",
+                answers: ["Thiéboudienne", "Mafé", "Attiéké", "Fufu"],
+                correct: "Thiéboudienne",
+                category: "cuisine"
+            },
+            {
+                text: "Qui est considéré comme le père du cinéma africain ?",
+                answers: ["Ousmane Sembène", "Djibril Diop Mambéty", "Gaston Kaboré", "Souleymane Cissé"],
+                correct: "Ousmane Sembène",
+                category: "art"
+            },
+            {
+                text: "Quel empire ouest-africain était célèbre pour sa richesse en or ?",
+                answers: ["Empire du Mali", "Empire Songhaï", "Royaume du Ghana", "Empire du Kanem-Bornou"],
+                correct: "Empire du Mali",
+                category: "histoire"
             }
-        } catch (error) {
-            this.showNotification('Erreur de chargement des questions', 'error');
-            console.error(error);
+        ];
+        
+        // Ajouter plus de questions
+        while (this.questions.length < 10) {
+            this.questions.push({
+                text: `Question ${this.questions.length + 1} sur la culture africaine ?`,
+                answers: ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
+                correct: "Réponse A",
+                category: "general"
+            });
         }
     }
 
-    async loadQuestion() {
-        try {
-            this.currentQuestion = await this.getNextQuestion();
-            
-            if (!this.currentQuestion) {
-                throw new Error('Question non disponible');
-            }
-            
-            // Mettre à jour l'interface
-            document.getElementById('question-text').textContent = this.currentQuestion.text;
-            document.getElementById('current-category').textContent = this.currentQuestion.category;
-            document.getElementById('question-counter').textContent = 
-                `Question ${this.currentQuestionIndex + 1}/10`;
-            
-            // Mettre à jour la barre de progression
-            const progress = ((this.currentQuestionIndex) / 10) * 100;
-            document.getElementById('progress-fill').style.width = `${progress}%`;
-            
-            // Afficher les réponses
-            this.displayAnswers();
-            
-            // Réinitialiser l'état de sélection
-            this.answerSelected = false;
-            document.getElementById('next-question').disabled = true;
-            
-        } catch (error) {
-            console.error('Erreur chargement question:', error);
-            this.showNotification('Impossible de charger la question', 'error');
+    loadQuestion() {
+        if (this.currentQuestionIndex >= this.questions.length) {
+            this.finishQuiz();
+            return;
         }
+        
+        this.currentQuestion = this.questions[this.currentQuestionIndex];
+        this.answerSelected = false;
+        
+        // Mettre à jour l'interface
+        document.getElementById('question-text').textContent = this.currentQuestion.text;
+        document.getElementById('current-category').textContent = this.currentQuestion.category;
+        document.getElementById('question-counter').textContent = 
+            `${this.translations[this.currentLang].question_counter} ${this.currentQuestionIndex + 1}/${this.questions.length}`;
+        
+        // Progression
+        const progress = ((this.currentQuestionIndex) / this.questions.length) * 100;
+        document.getElementById('progress-fill').style.width = `${progress}%`;
+        
+        // Réponses
+        this.displayAnswers();
+        
+        // Désactiver suivant
+        document.getElementById('next-question').disabled = true;
     }
 
     displayAnswers() {
         const container = document.getElementById('answers-container');
-        container.innerHTML = '';
+        if (!container) return;
         
-        this.currentQuestion.answers.forEach((answer, index) => {
-            const button = document.createElement('button');
-            button.className = 'answer-btn';
-            button.innerHTML = `
-                <div class="answer-number">${index + 1}</div>
+        const shuffledAnswers = [...this.currentQuestion.answers].sort(() => Math.random() - 0.5);
+        
+        container.innerHTML = shuffledAnswers.map((answer, index) => `
+            <button class="answer-btn" data-answer="${answer}">
+                <span class="answer-number">${index + 1}</span>
                 <span>${answer}</span>
-            `;
-            button.dataset.answer = answer;
-            container.appendChild(button);
-        });
+            </button>
+        `).join('');
     }
 
-    async selectAnswer(button) {
+    selectAnswer(button) {
         if (this.answerSelected) return;
         
         this.answerSelected = true;
         const selectedAnswer = button.dataset.answer;
-        
-        // Vérifier la réponse avec le serveur
-        const isCorrect = await this.verifyAnswer(selectedAnswer);
+        const isCorrect = selectedAnswer === this.currentQuestion.correct;
         
         // Mettre à jour l'interface
         button.classList.add(isCorrect ? 'correct' : 'incorrect');
         
-        if (isCorrect) {
-            this.score += this.calculateScore();
-            this.correctAnswers++;
-            this.showNotification('Bonne réponse!', 'success');
-        } else {
-            this.showNotification('Mauvaise réponse', 'error');
-            
-            // Afficher la bonne réponse
+        // Si incorrect, montrer la bonne réponse
+        if (!isCorrect) {
             document.querySelectorAll('.answer-btn').forEach(btn => {
                 if (btn.dataset.answer === this.currentQuestion.correct) {
                     btn.classList.add('correct');
                 }
             });
+        } else {
+            this.correctAnswers++;
+            this.score += this.calculateScore();
         }
         
-        // Activer le bouton suivant
+        // Activer suivant
         document.getElementById('next-question').disabled = false;
         
         // Arrêter le timer
@@ -397,112 +567,53 @@ class QuizApp {
             this.isTimerRunning = false;
         }
         
-        // Enregistrer dans l'historique
-        this.quizHistory.push({
-            question: this.currentQuestion.text,
-            selected: selectedAnswer,
-            correct: this.currentQuestion.correct,
-            isCorrect: isCorrect,
-            timeSpent: 20 - this.timeLeft
-        });
-    }
-
-    async verifyAnswer(selectedAnswer) {
-        try {
-            const response = await fetch('/api/questions/verify', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    questionText: this.currentQuestion.text,
-                    answer: selectedAnswer,
-                    lang: this.currentLang
-                })
-            });
-            
-            const result = await response.json();
-            return result.correct;
-        } catch (error) {
-            console.error('Erreur vérification réponse:', error);
-            // Fallback : vérifier localement si la question est en cache
-            return selectedAnswer === this.currentQuestion.correct;
-        }
+        // Notification
+        this.showNotification(
+            isCorrect ? '✅ Bonne réponse !' : '❌ Mauvaise réponse',
+            isCorrect ? 'success' : 'error'
+        );
     }
 
     calculateScore() {
         let baseScore = 100;
-        
-        // Bonus pour réponse rapide (mode normal seulement)
         if (this.selectedMode === 'normal' && this.timeLeft > 10) {
             baseScore += 50;
-        } else if (this.selectedMode === 'normal' && this.timeLeft > 5) {
-            baseScore += 25;
         }
-        
         return baseScore;
     }
 
-    async nextQuestion() {
+    nextQuestion() {
         this.currentQuestionIndex++;
         
-        if (this.currentQuestionIndex >= 10) {
-            await this.finishQuiz();
-        } else {
-            if (this.selectedMode === 'normal') {
-                this.resetTimer();
-                this.startTimer();
-            }
-            await this.loadQuestion();
+        if (this.selectedMode === 'normal') {
+            this.resetTimer();
+            this.startTimer();
         }
+        
+        this.loadQuestion();
     }
 
-    async finishQuiz() {
+    finishQuiz() {
         this.showScreen('results');
         
-        // Calculer le temps total
-        const totalTime = this.quizHistory.reduce((sum, q) => sum + q.timeSpent, 0);
+        // Calculs
+        const totalTime = this.quizHistory.reduce((sum, q) => sum + (q.timeSpent || 0), 0);
         
         // Mettre à jour l'affichage
         document.getElementById('final-score').textContent = this.score;
-        document.getElementById('correct-count').textContent = `${this.correctAnswers}/10`;
+        document.getElementById('correct-count').textContent = `${this.correctAnswers}/${this.questions.length}`;
         document.getElementById('time-spent').textContent = `${totalTime}s`;
-        
-        // Calculer la meilleure catégorie
-        const categoryStats = this.calculateCategoryStats();
-        const bestCategory = Object.entries(categoryStats)
-            .sort((a, b) => b[1] - a[1])[0];
-        
-        document.getElementById('best-category').textContent = 
-            bestCategory ? bestCategory[0] : '-';
         
         // Sauvegarder le score
         this.saveScore();
     }
 
-    calculateCategoryStats() {
-        const stats = {};
-        
-        this.quizHistory.forEach((q, index) => {
-            const category = this.questions[index]?.category;
-            if (category) {
-                if (!stats[category]) stats[category] = { correct: 0, total: 0 };
-                stats[category].total++;
-                if (q.isCorrect) stats[category].correct++;
-            }
-        });
-        
-        return Object.fromEntries(
-            Object.entries(stats).map(([cat, data]) => [cat, data.correct / data.total])
-        );
-    }
-
     saveScore() {
-        const playerName = prompt('Entrez votre nom pour le classement:', 'Joueur');
-        if (!playerName) return;
+        const name = prompt('Entrez votre nom pour le classement:', 'Joueur');
+        if (!name) return;
         
         const scoreData = {
-            name: playerName,
+            name: name,
             score: this.score,
             correct: this.correctAnswers,
             time: this.totalTime,
@@ -510,39 +621,38 @@ class QuizApp {
             mode: this.selectedMode
         };
         
-        // Récupérer les scores existants
-        const scores = JSON.parse(localStorage.getItem('quizScores') || '[]');
+        const scores = JSON.parse(localStorage.getItem('quizLeaderboard') || '[]');
         scores.push(scoreData);
-        
-        // Trier et garder les 10 meilleurs
         scores.sort((a, b) => b.score - a.score);
         const top10 = scores.slice(0, 10);
         
-        localStorage.setItem('quizScores', JSON.stringify(top10));
-        
-        // Mettre à jour l'affichage
+        localStorage.setItem('quizLeaderboard', JSON.stringify(top10));
         this.loadLeaderboard();
+        
+        this.showNotification('Score enregistré !', 'success');
     }
 
     loadLeaderboard() {
-        const scores = JSON.parse(localStorage.getItem('quizScores') || '[]');
+        const leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard') || '[]');
         const container = document.getElementById('leaderboard-list');
         
-        if (scores.length === 0) {
-            container.innerHTML = '<p class="no-scores">Aucun score enregistré</p>';
+        if (!container) return;
+        
+        if (leaderboard.length === 0) {
+            container.innerHTML = `<p class="no-scores">${this.translations[this.currentLang].no_scores}</p>`;
             return;
         }
         
-        container.innerHTML = scores.map((score, index) => `
+        container.innerHTML = leaderboard.slice(0, 10).map((player, index) => `
             <div class="leaderboard-item">
                 <span class="rank">${index + 1}</span>
-                <span class="player-name">${score.name}</span>
-                <span class="player-score">${score.score} pts</span>
+                <span class="player-name">${player.name}</span>
+                <span class="player-score">${player.score} pts</span>
             </div>
         `).join('');
     }
 
-    // Méthodes pour le timer
+    // ============ TIMER ============
     startTimer() {
         if (this.selectedMode !== 'normal' || this.isTimerRunning) return;
         
@@ -570,25 +680,21 @@ class QuizApp {
 
     updateTimerDisplay() {
         const timerElement = document.getElementById('timer');
-        timerElement.textContent = this.timeLeft;
+        if (!timerElement) return;
         
-        // Changer la couleur selon le temps restant
+        timerElement.textContent = this.timeLeft;
         timerElement.classList.remove('warning', 'danger');
-        if (this.timeLeft <= 10) {
-            timerElement.classList.add('warning');
-        }
-        if (this.timeLeft <= 5) {
-            timerElement.classList.add('danger');
-        }
+        
+        if (this.timeLeft <= 10) timerElement.classList.add('warning');
+        if (this.timeLeft <= 5) timerElement.classList.add('danger');
     }
 
     handleTimeUp() {
         if (this.answerSelected) return;
         
         this.answerSelected = true;
-        this.showNotification('Temps écoulé!', 'warning');
+        this.showNotification('⏰ Temps écoulé !', 'warning');
         
-        // Afficher la bonne réponse
         document.querySelectorAll('.answer-btn').forEach(btn => {
             if (btn.dataset.answer === this.currentQuestion.correct) {
                 btn.classList.add('correct');
@@ -596,149 +702,15 @@ class QuizApp {
         });
         
         document.getElementById('next-question').disabled = false;
-        this.quizHistory.push({
-            question: this.currentQuestion.text,
-            selected: null,
-            correct: this.currentQuestion.correct,
-            isCorrect: false,
-            timeSpent: 20
-        });
     }
 
-    // Méthodes pour les écrans
-    showScreen(screenName) {
-        // Cacher tous les écrans
-        document.querySelectorAll('.screen').forEach(screen => {
-            screen.classList.remove('active');
-        });
-        
-        // Afficher l'écran demandé
-        document.getElementById(`${screenName}-screen`).classList.add('active');
-        this.currentScreen = screenName;
-    }
-
-    // Méthodes pour les catégories
-    loadCategories() {
-        const categories = [
-            {
-                id: 'cuisine',
-                name: 'Cuisine Africaine',
-                description: 'Saveurs et plats traditionnels',
-                icon: 'fas fa-utensils'
-            },
-            {
-                id: 'art',
-                name: 'Art et Culture',
-                description: 'Musique, danse, peinture',
-                icon: 'fas fa-palette'
-            },
-            {
-                id: 'histoire',
-                name: 'Histoire',
-                description: 'Royaumes et civilisations',
-                icon: 'fas fa-landmark'
-            },
-            {
-                id: 'geographie',
-                name: 'Géographie',
-                description: 'Pays, fleuves, montagnes',
-                icon: 'fas fa-globe-africa'
-            },
-            {
-                id: 'langues',
-                name: 'Langues',
-                description: 'Plus de 2000 langues',
-                icon: 'fas fa-language'
-            },
-            {
-                id: 'traditions',
-                name: 'Traditions',
-                description: 'Coutumes et rituels',
-                icon: 'fas fa-hands'
-            },
-            {
-                id: 'savants',
-                name: 'Grandes Figures',
-                description: 'Savants et héros',
-                icon: 'fas fa-users'
-            },
-            {
-                id: 'nature',
-                name: 'Nature et Faune',
-                description: 'Animaux et écosystèmes',
-                icon: 'fas fa-leaf'
-            },
-            {
-                id: 'sports',
-                name: 'Sports',
-                description: 'Athlètes et compétitions',
-                icon: 'fas fa-futbol'
-            },
-            {
-                id: 'innovation',
-                name: 'Innovation',
-                description: 'Technologie et startups',
-                icon: 'fas fa-lightbulb'
-            }
-        ];
-        
-        const grid = document.querySelector('.categories-grid');
-        grid.innerHTML = categories.map(cat => `
-            <div class="category-card" data-category="${cat.id}">
-                <div class="category-icon">
-                    <i class="${cat.icon}"></i>
-                </div>
-                <h3>${cat.name}</h3>
-                <p>${cat.description}</p>
-            </div>
-        `).join('');
-    }
-
-    toggleCategory(card) {
-        const category = card.dataset.category;
-        
-        if (this.selectedCategories.has(category)) {
-            this.selectedCategories.delete(category);
-            card.classList.remove('selected');
-        } else {
-            this.selectedCategories.add(category);
-            card.classList.add('selected');
-        }
-    }
-
-    // Méthodes pour le mode
-    selectMode(mode) {
-        this.selectedMode = mode;
-        
-        // Mettre à jour l'interface
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        document.getElementById(`${mode}-mode`).classList.add('active');
-    }
-
-    // Méthodes pour la langue
-    switchLanguage(lang) {
-        this.currentLang = lang;
-        
-        // Mettre à jour les boutons de langue
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.lang === lang) {
-                btn.classList.add('active');
-            }
-        });
-        
-        // Recharger les traductions
-        this.loadTranslations();
-        
-        // Recharger les catégories avec les nouvelles traductions
-        this.loadCategories();
-    }
-
-    // Méthodes pour le paiement
+    // ============ PAIEMENT ============
     openPaymentModal(amount) {
+        if (amount < 500) {
+            this.showNotification('min_amount_error', 'error');
+            return;
+        }
+        
         this.currentPaymentAmount = amount;
         document.getElementById('payment-amount').textContent = `${amount} FCFA`;
         document.getElementById('payment-modal').classList.add('active');
@@ -746,170 +718,86 @@ class QuizApp {
 
     closePaymentModal() {
         document.getElementById('payment-modal').classList.remove('active');
-        this.resetPaymentForm();
     }
 
-    selectPaymentMethod(method) {
-        document.querySelectorAll('.payment-method').forEach(m => {
-            m.classList.remove('active');
-        });
-        
-        document.querySelector(`[data-method="${method}"]`).classList.add('active');
-        
-        // Afficher le champ approprié
-        document.getElementById('phone-number').style.display = 
-            method === 'mobile' ? 'block' : 'none';
-        document.getElementById('card-number').style.display = 
-            method === 'card' ? 'block' : 'none';
-    }
-
-    async processPayment() {
-        const method = document.querySelector('.payment-method.active').dataset.method;
-        let paymentData = {
-            amount: this.currentPaymentAmount,
-            method: method
-        };
-        
-        if (method === 'mobile') {
-            const phone = document.getElementById('phone-number').value;
-            if (!this.validatePhone(phone)) {
-                this.showNotification('Numéro de téléphone invalide', 'error');
-                return;
-            }
-            paymentData.phone = phone;
-        } else {
-            const card = document.getElementById('card-number').value;
-            if (!this.validateCard(card)) {
-                this.showNotification('Numéro de carte invalide', 'error');
-                return;
-            }
-            paymentData.card = card;
-        }
-        
-        try {
-            // Envoyer la demande au serveur
-            const response = await fetch('/api/payment/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(paymentData)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success && result.token) {
-                // Ouvrir l'interface FedaPay
-                window.FedaPay.checkout({
-                    public_key: result.publicKey,
-                    transaction: {
-                        token: result.token
-                    },
-                    onClose: () => {
-                        this.closePaymentModal();
-                    },
-                    onSuccess: () => {
-                        this.showNotification('Paiement réussi! Merci pour votre soutien.', 'success');
-                        this.closePaymentModal();
-                    },
-                    onError: (error) => {
-                        this.showNotification('Erreur de paiement: ' + error.message, 'error');
-                    }
-                });
-            } else {
-                throw new Error(result.error || 'Erreur inconnue');
-            }
-            
-        } catch (error) {
-            console.error('Erreur paiement:', error);
-            this.showNotification('Erreur lors du paiement', 'error');
-        }
-    }
-
-    resetPaymentForm() {
-        document.getElementById('phone-number').value = '';
-        document.getElementById('card-number').value = '';
-    }
-
-    validatePhone(phone) {
-        // Validation simple pour les numéros africains
-        const phoneRegex = /^(\+?221|00221|\+?225|00225|\+?229|00229|\+?237|00237)?[0-9]{8,9}$/;
-        return phoneRegex.test(phone.replace(/\s/g, ''));
-    }
-
-    validateCard(card) {
-        // Validation simple pour les cartes
-        const cardRegex = /^[0-9]{16}$/;
-        return cardRegex.test(card.replace(/\s/g, ''));
-    }
-
-    // Méthodes de partage
-    async shareScore(platform) {
-        const scoreText = `J'ai obtenu ${this.score} points au Quiz Culturel Africain! 🎯`;
-        const url = window.location.href;
-        
-        let shareUrl;
-        switch (platform) {
-            case 'twitter':
-                shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(scoreText)}&url=${encodeURIComponent(url)}`;
-                break;
-            case 'facebook':
-                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-                break;
-        }
-        
-        window.open(shareUrl, '_blank', 'width=600,height=400');
-    }
-
-    async copyToClipboard() {
-        const text = `J'ai obtenu ${this.score} points au Quiz Culturel Africain! 🎯\n${window.location.href}`;
-        
-        try {
-            await navigator.clipboard.writeText(text);
-            this.showNotification('Lien copié dans le presse-papier!', 'success');
-        } catch (error) {
-            // Fallback pour les anciens navigateurs
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            this.showNotification('Lien copié!', 'success');
-        }
-    }
-
-    // Méthodes de notification
-    showNotification(message, type = 'info') {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.className = `notification ${type} show`;
+    processPayment() {
+        const amount = this.currentPaymentAmount;
+        this.showNotification(`Paiement de ${amount} FCFA simulé`, 'info');
         
         setTimeout(() => {
-            notification.classList.remove('show');
+            this.closePaymentModal();
+            this.showNotification(`Merci pour votre don de ${amount} FCFA !`, 'success');
+        }, 2000);
+    }
+
+    // ============ UTILITAIRES ============
+    showScreen(screenName) {
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        
+        const targetScreen = document.getElementById(`${screenName}-screen`);
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+        }
+    }
+
+    showNotification(messageKey, type = 'info', customText = null) {
+        let message = customText || messageKey;
+        
+        // Utiliser la traduction si disponible
+        if (this.translations[this.currentLang] && 
+            this.translations[this.currentLang][messageKey]) {
+            message = this.translations[this.currentLang][messageKey];
+        }
+        
+        console.log(`📢 ${type}: ${message}`);
+        
+        // Créer la notification
+        let notification = document.getElementById('notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification';
+            document.body.appendChild(notification);
+        }
+        
+        // Styles
+        const colors = {
+            success: '#2ecc71',
+            error: '#e74c3c',
+            info: '#3498db',
+            warning: '#f39c12'
+        };
+        
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${colors[type] || colors.info};
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        `;
+        
+        // Afficher
+        setTimeout(() => {
+            notification.style.transform = 'translateY(0)';
+            notification.style.opacity = '1';
+        }, 10);
+        
+        // Cacher
+        setTimeout(() => {
+            notification.style.transform = 'translateY(100px)';
+            notification.style.opacity = '0';
         }, 3000);
     }
 
-    // Méthodes PWA
-    registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('Service Worker enregistré avec succès:', registration);
-                })
-                .catch(error => {
-                    console.log('Échec enregistrement Service Worker:', error);
-                });
-        }
-    }
-
-    checkOnlineStatus() {
-        if (!navigator.onLine) {
-            this.showNotification('Mode hors ligne activé', 'warning');
-        }
-    }
-
-    // Restart quiz
     restartQuiz() {
         this.quizStarted = false;
         this.currentQuestionIndex = 0;
@@ -918,25 +806,37 @@ class QuizApp {
         this.totalTime = 0;
         this.questions = [];
         this.quizHistory = [];
+        this.selectedCategories.clear();
+        
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('selected');
+        });
         
         this.showScreen('home');
     }
-
-    // Synchronisation cache
-    async syncCachedQuestions() {
-        if (navigator.onLine && this.cachedQuestions.length > 0) {
-            try {
-                // Télécharger un nouveau lot de questions
-                const newQuestions = await this.loadQuestionsFromServer();
-                await this.cacheQuestions(newQuestions);
-            } catch (error) {
-                console.error('Erreur synchronisation cache:', error);
-            }
-        }
-    }
 }
 
-// Initialiser l'application quand la page est chargée
-document.addEventListener('DOMContentLoaded', () => {
+// ============================================
+// DÉMARRAGE
+// ============================================
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📄 DOM chargé');
+        window.quizApp = new QuizApp();
+    });
+} else {
+    console.log('📄 DOM déjà chargé');
     window.quizApp = new QuizApp();
+}
+
+// Gestion des erreurs
+window.addEventListener('error', function(e) {
+    console.error('❌ ERREUR:', e.message);
+    
+    if (window.quizApp && window.quizApp.showNotification) {
+        window.quizApp.showNotification(`Erreur: ${e.message.split('\n')[0]}`, 'error');
+    }
 });
+
+console.log('✅ Application JavaScript prête');
