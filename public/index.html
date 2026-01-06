@@ -1,194 +1,148 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Culturel Africain</title>
-    <meta name="description" content="Testez vos connaissances sur la culture africaine">
+    <meta name="description" content="Quiz sur la culture africaine">
+    <title>Quiz Culture Africaine</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.fedapay.com/checkout.js"></script>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
 </head>
 <body>
-    <!-- Écran d'accueil -->
-    <div id="home-screen" class="screen active">
-        <header>
-            <div class="logo">
-                <i class="fas fa-globe-africa"></i>
-                <h1>Quiz Africain</h1>
-            </div>
-            <div class="language-selector">
-                <button class="lang-btn active" data-lang="fr">🇫🇷 FR</button>
-                <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
-            </div>
-        </header>
-
-        <main>
-            <div class="hero">
-                <h2 data-i18n="hero_title">Testez votre culture africaine</h2>
-                <p data-i18n="hero_subtitle">Découvrez la richesse du continent à travers 10 catégories captivantes</p>
-                
-                <div class="categories-grid">
-                    <!-- Catégories générées dynamiquement -->
-                </div>
-
-                <div class="mode-selector">
-                    <h3 data-i18n="select_mode">Choisissez votre mode</h3>
-                    <div class="mode-buttons">
-                        <button id="normal-mode" class="mode-btn active">
-                            <i class="fas fa-stopwatch"></i>
-                            <span data-i18n="normal_mode">Mode Normal (20s)</span>
-                        </button>
-                        <button id="training-mode" class="mode-btn">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span data-i18n="training_mode">Mode Entraînement</span>
-                        </button>
-                    </div>
-                </div>
-
-                <button id="start-quiz" class="btn-primary" data-i18n="start_quiz">
-                    Commencer le quiz
-                </button>
-
-                <div class="leaderboard-preview">
-                    <h3 data-i18n="top_players">Top 10 Joueurs</h3>
-                    <div id="leaderboard-list"></div>
-                </div>
-
-                <div class="support-section">
-                    <h3 data-i18n="support_project">Soutenez ce projet</h3>
-                    <div class="donation-buttons">
-                        <button class="donation-btn" data-amount="500">500 FCFA</button>
-                        <button class="donation-btn" data-amount="1000">1000 FCFA</button>
-                        <button class="donation-btn" data-amount="2000">2000 FCFA</button>
-                        <button class="donation-btn" data-amount="5000">5000 FCFA</button>
-                    </div>
-                </div>
-            </div>
-        </main>
+    <!-- Langue switcher -->
+    <div class="lang-switcher">
+        <button id="lang-fr" class="lang-btn active">🇫🇷 FR</button>
+        <button id="lang-en" class="lang-btn">🇬🇧 EN</button>
     </div>
 
-    <!-- Écran du quiz -->
+    <!-- Écran Accueil -->
+    <div id="home-screen" class="screen active">
+        <header>
+            <h1 id="app-title">🌍 Quiz Culture Africaine</h1>
+            <p id="app-subtitle">Testez vos connaissances sur le continent africain</p>
+        </header>
+
+        <div class="pwa-install-container" id="pwa-install-container" style="display: none;">
+            <button id="install-btn" class="install-btn">
+                <i class="fas fa-download"></i> <span id="install-text">Installer l'application</span>
+            </button>
+        </div>
+
+        <div class="categories-container">
+            <h2 id="choose-category">Choisissez une catégorie :</h2>
+            <div class="categories-grid">
+                <!-- Catégories générées dynamiquement -->
+            </div>
+
+            <div class="mix-mode-container">
+                <button id="mix-mode-btn" class="mix-mode-btn">
+                    <i class="fas fa-random"></i> <span id="mix-mode-text">Mode Mix - Toutes catégories</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="game-info">
+            <p id="game-description">10 questions par catégorie • Timer 20s • Score final</p>
+        </div>
+    </div>
+
+    <!-- Écran Quiz -->
     <div id="quiz-screen" class="screen">
         <div class="quiz-header">
             <div class="quiz-info">
-                <span id="current-category"></span>
-                <span id="question-counter"></span>
+                <span id="category-display" class="category-badge"></span>
+                <span id="question-counter" class="counter">Question 1/10</span>
             </div>
             <div class="timer-container">
-                <div class="timer" id="timer">20</div>
+                <div class="timer-circle">
+                    <svg class="timer-svg" width="60" height="60">
+                        <circle class="timer-circle-bg" cx="30" cy="30" r="28"></circle>
+                        <circle class="timer-circle-progress" cx="30" cy="30" r="28"></circle>
+                    </svg>
+                    <span id="timer">20</span>
+                </div>
             </div>
         </div>
 
-        <div class="quiz-content">
-            <div class="question-card">
-                <h2 id="question-text"></h2>
-                <div class="answers-grid" id="answers-container">
-                    <!-- Réponses générées dynamiquement -->
-                </div>
-            </div>
+        <div class="question-container">
+            <h2 id="question-text"></h2>
+        </div>
 
-            <div class="quiz-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
-                </div>
-                <button id="next-question" class="btn-secondary" data-i18n="next_question" disabled>
-                    Question suivante
-                </button>
-            </div>
+        <div class="answers-container">
+            <!-- Réponses générées dynamiquement -->
+        </div>
+
+        <div class="quiz-navigation">
+            <button id="next-btn" class="btn next-btn" disabled>
+                <span id="next-text">Suivant</span> <i class="fas fa-arrow-right"></i>
+            </button>
         </div>
     </div>
 
-    <!-- Écran des résultats -->
+    <!-- Écran Résultats -->
     <div id="results-screen" class="screen">
-        <div class="results-container">
-            <h2 data-i18n="quiz_completed">Quiz Terminé !</h2>
-            
+        <div class="results-header">
+            <h2 id="results-title">Résultats du Quiz</h2>
             <div class="score-display">
                 <div class="score-circle">
-                    <span id="final-score">0</span>
-                    <small data-i18n="points">points</small>
+                    <span id="score-percent">0%</span>
                 </div>
-                
-                <div class="score-details">
-                    <div class="score-item">
-                        <span data-i18n="correct_answers">Bonnes réponses :</span>
-                        <span id="correct-count">0</span>
-                    </div>
-                    <div class="score-item">
-                        <span data-i18n="time_spent">Temps passé :</span>
-                        <span id="time-spent">0s</span>
-                    </div>
-                    <div class="score-item">
-                        <span data-i18n="category_best">Meilleure catégorie :</span>
-                        <span id="best-category">-</span>
-                    </div>
-                </div>
+                <p id="score-text">Score : <span id="score-value">0</span>/10</p>
             </div>
+        </div>
 
+        <div class="results-details">
+            <h3 id="performance-title">Votre performance</h3>
+            <div id="performance-chart">
+                <!-- Graphique de performance -->
+            </div>
             <div class="results-actions">
-                <button id="play-again" class="btn-primary" data-i18n="play_again">
-                    Rejouer
+                <button id="play-again-btn" class="btn primary-btn">
+                    <i class="fas fa-redo"></i> <span id="play-again-text">Rejouer</span>
                 </button>
-                <button id="back-home" class="btn-secondary" data-i18n="back_home">
-                    Retour à l'accueil
-                </button>
-            </div>
-
-            <div class="share-section">
-                <h3 data-i18n="share_score">Partagez votre score</h3>
-                <div class="share-buttons">
-                    <button class="share-btn" data-platform="twitter">
-                        <i class="fab fa-twitter"></i>
-                    </button>
-                    <button class="share-btn" data-platform="facebook">
-                        <i class="fab fa-facebook"></i>
-                    </button>
-                    <button class="share-btn" id="copy-link">
-                        <i class="fas fa-link"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de paiement -->
-    <div id="payment-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3 data-i18n="payment_title">Soutenir le Quiz Africain</h3>
-            <p data-i18n="payment_description">Votre contribution aide à développer plus de contenu éducatif sur l'Afrique</p>
-            
-            <div class="payment-options">
-                <div class="payment-method active" data-method="mobile">
-                    <i class="fas fa-mobile-alt"></i>
-                    <span data-i18n="mobile_money">Mobile Money</span>
-                </div>
-                <div class="payment-method" data-method="card">
-                    <i class="fas fa-credit-card"></i>
-                    <span data-i18n="credit_card">Carte Bancaire</span>
-                </div>
-            </div>
-
-            <div class="payment-form">
-                <input type="tel" id="phone-number" placeholder="Numéro de téléphone" data-i18n-ph="enter_phone">
-                <input type="text" id="card-number" placeholder="Numéro de carte" data-i18n-ph="enter_card" style="display: none;">
-                
-                <div class="payment-details">
-                    <p data-i18n="amount">Montant :</p>
-                    <h4 id="payment-amount">0 FCFA</h4>
-                </div>
-
-                <button id="confirm-payment" class="btn-primary" data-i18n="confirm_payment">
-                    Confirmer le paiement
+                <button id="home-btn" class="btn secondary-btn">
+                    <i class="fas fa-home"></i> <span id="home-text">Accueil</span>
                 </button>
             </div>
         </div>
-    </div>
 
-    <!-- Notification -->
-    <div id="notification" class="notification"></div>
+        <div class="support-section">
+            <h3 id="support-title">Soutenez le projet</h3>
+            <p id="support-text">Contribuez au développement de ce quiz culturel</p>
+            <div class="donation-options">
+                <button class="donation-btn" data-amount="500">
+                    <span class="amount">500</span>
+                    <span class="currency">FCFA</span>
+                </button>
+                <button class="donation-btn" data-amount="1000">
+                    <span class="amount">1 000</span>
+                    <span class="currency">FCFA</span>
+                </button>
+                <button class="donation-btn" data-amount="2000">
+                    <span class="amount">2 000</span>
+                    <span class="currency">FCFA</span>
+                </button>
+                <button class="donation-btn" data-amount="5000">
+                    <span class="amount">5 000</span>
+                    <span class="currency">FCFA</span>
+                </button>
+            </div>
+            <div id="payment-container" style="display: none;">
+                <!-- FedaPay payment iframe -->
+            </div>
+        </div>
+
+        <div class="share-section">
+            <p id="share-text">Partagez votre score !</p>
+            <div class="share-buttons">
+                <button class="share-btn"><i class="fab fa-whatsapp"></i></button>
+                <button class="share-btn"><i class="fab fa-facebook"></i></button>
+                <button class="share-btn"><i class="fab fa-twitter"></i></button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
