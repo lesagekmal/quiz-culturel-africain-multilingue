@@ -1,0 +1,122 @@
+[
+  {
+    "text": "Which African empire was famous for its gold wealth and ruler Mansa Musa?",
+    "answers": ["Ghana Empire", "Songhai Empire", "Mali Empire", "Benin Empire"],
+    "correct": "Mali Empire",
+    "category": "Histoire africaine"
+  },
+  {
+    "text": "What is the capital of Senegal?",
+    "answers": ["Bamako", "Dakar", "Abidjan", "Conakry"],
+    "correct": "Dakar",
+    "category": "Géographie"
+  },
+  {
+    "text": "Which language is spoken in Nigeria besides English?",
+    "answers": ["Swahili", "Yoruba", "Wolof", "Amharic"],
+    "correct": "Yoruba",
+    "category": "Langues et ethnies"
+  },
+  {
+    "text": "Which musical instrument is traditionally associated with West African griots?",
+    "answers": ["Balafon", "Piano", "Guitar", "Violin"],
+    "correct": "Balafon",
+    "category": "Musique et danse"
+  },
+  {
+    "text": "Which couscous-based dish is typical of the Maghreb?",
+    "answers": ["Tagine", "Couscous", "Pastilla", "Mechoui"],
+    "correct": "Couscous",
+    "category": "Cuisine africaine"
+  },
+  {
+    "text": "Who wrote 'So Long a Letter', an emblematic novel of Senegalese literature?",
+    "answers": ["Léopold Sédar Senghor", "Mariama Bâ", "Aminata Sow Fall", "Fatou Diome"],
+    "correct": "Mariama Bâ",
+    "category": "Littérature et arts"
+  },
+  {
+    "text": "Which African country won the 2023 Africa Cup of Nations?",
+    "answers": ["Senegal", "Ivory Coast", "Nigeria", "Egypt"],
+    "correct": "Ivory Coast",
+    "category": "Sport"
+  },
+  {
+    "text": "In Yoruba mythology, who is the god of thunder and lightning?",
+    "answers": ["Ogun", "Shango", "Obatala", "Eshu"],
+    "correct": "Shango",
+    "category": "Mythes et croyances"
+  },
+  {
+    "text": "Which anti-apartheid icon was the first black president of South Africa?",
+    "answers": ["Nelson Mandela", "Desmond Tutu", "Steve Biko", "Thabo Mbeki"],
+    "correct": "Nelson Mandela",
+    "category": "Personnalités contemporaines"
+  },
+  {
+    "text": "Which Senegalese film directed by Ousmane Sembène is considered the first African feature film?",
+    "answers": ["Black Girl", "Xala", "Moolaadé", "Borom Sarret"],
+    "correct": "Borom Sarret",
+    "category": "Culture populaire et cinéma"
+  },
+  {
+    "text": "Which African civilization built Great Zimbabwe?",
+    "answers": ["The Shonas", "The Zulus", "The Maasai", "The Berbers"],
+    "correct": "The Shonas",
+    "category": "Histoire africaine"
+  },
+  {
+    "text": "What is the longest river in Africa?",
+    "answers": ["Nile", "Congo", "Niger", "Zambezi"],
+    "correct": "Nile",
+    "category": "Géographie"
+  },
+  {
+    "text": "Approximately how many languages are spoken in Africa?",
+    "answers": ["500-600", "1000-1500", "2000-3000", "More than 3000"],
+    "correct": "2000-3000",
+    "category": "Langues et ethnies"
+  },
+  {
+    "text": "Which music genre originated from the Democratic Republic of Congo?",
+    "answers": ["Soukous", "Afrobeat", "Highlife", "Mbalax"],
+    "correct": "Soukous",
+    "category": "Musique et danse"
+  },
+  {
+    "text": "From which country does 'Jollof Rice' come from?",
+    "answers": ["Nigeria", "Senegal", "Ghana", "Ivory Coast"],
+    "correct": "Nigeria",
+    "category": "Cuisine africaine"
+  },
+  {
+    "text": "Which Nigerian writer won the Nobel Prize in Literature in 1986?",
+    "answers": ["Chinua Achebe", "Wole Soyinka", "Ben Okri", "Chimamanda Ngozi Adichie"],
+    "correct": "Wole Soyinka",
+    "category": "Littérature et arts"
+  },
+  {
+    "text": "Which Kenyan athlete holds the marathon world record?",
+    "answers": ["Eliud Kipchoge", "David Rudisha", "Kipchoge Keino", "Faith Kipyegon"],
+    "correct": "Eliud Kipchoge",
+    "category": "Sport"
+  },
+  {
+    "text": "In Egyptian mythology, who is the sun god?",
+    "answers": ["Osiris", "Anubis", "Ra", "Horus"],
+    "correct": "Ra",
+    "category": "Mythes et croyances"
+  },
+  {
+    "text": "Who is the current president of the African Union (2024)?",
+    "answers": ["Paul Kagame", "Cyril Ramaphosa", "Azali Assoumani", "Mohamed Ould Ghazouani"],
+    "correct": "Azali Assoumani",
+    "category": "Personnalités contemporaines"
+  },
+  {
+    "text": "Which Nigerian TV series became a global phenomenon on Netflix?",
+    "answers": ["King of Boys", "Blood Sisters", "The Black Book", "Aníkúlápó"],
+    "correct": "Aníkúlápó",
+    "category": "Culture populaire et cinéma"
+  }
+]

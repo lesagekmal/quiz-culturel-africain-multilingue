@@ -1,11 +1,38 @@
 {
   "version": 2,
   "builds": [
-    { "src": "server/server.js", "use": "@vercel/node" },
-    { "src": "public/**", "use": "@vercel/static" }
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.json",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "sw.js",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/server/server.js" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    }
   ]
 }
