@@ -1,0 +1,14 @@
+{
+  "name": "quiz-culturel-africain-multilingue",
+  "version": "1.0.0",
+  "description": "A multilingual African culture quiz application",
+  "type": "module",
+  "keywords": [
+    "quiz",
+    "african-culture",
+    "education",
+    "multilingual"
+  ],
+  "author": "",
+  "license": "MIT"
+}
